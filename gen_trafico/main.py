@@ -35,7 +35,7 @@ def consulta():
         zona_b = random.choices(zonas, weights=pesos_q4)[0]
         datos = {
             "query": query,
-            "zone": zone,
+            "zone_id": zone,
             "params": {
                 "zone_b": zona_b,
                 "confidence_min": confidence
@@ -45,7 +45,7 @@ def consulta():
         bins = random.randint(3, 10)
         datos = {
             "query": query,
-            "zone": zone,
+            "zone_id": zone,
             "params": {
                 "bins": bins
             }   
@@ -53,7 +53,7 @@ def consulta():
     else:
         datos = {
             "query": query,
-            "zone": zone,
+            "zone_id": zone,
             "params": {
                 "confidence_min": confidence
             }   
