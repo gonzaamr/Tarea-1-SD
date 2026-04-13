@@ -3,9 +3,9 @@ import sys
 import requests
 import time
 
-pesos = [5,4,3,2,1]
 consultas = ["Q1","Q2","Q3","Q4","Q5"]
 zonas = ["Z1","Z2","Z3","Z4","Z5"]
+pesos = [1/(i+1) for i in range(len(zonas))]
 
 def zipf():
     zona = random.choices(zonas, weights=pesos)[0]
@@ -17,19 +17,11 @@ def uniforme():
     consulta = random.choices(consultas)[0]
     return zona, consulta
 
-dist = int(input("1 para zipf, 2 para uniforme: "))
 
 def consulta():
     confidence = round(random.uniform(0, 1), 2)
-
-    if dist == 1:
-        zone, query = zipf()
-    elif dist == 2:
-        zone, query = uniforme()
-    else:
-        print("No existe elección")
-        sys.exit()
-
+    zone, query = uniforme()
+    
     if query == "Q4":
         pesos_q4 = [1 if zona != zone else 0 for zona in zonas]
         zona_b = random.choices(zonas, weights=pesos_q4)[0]
@@ -66,7 +58,7 @@ def main():
     data = consulta()
     try:
         response = requests.post(
-            "http://127.0.0.1:8000/consulta",   #cambiar por contenedor
+            "http://api:8000/consulta",   
             json=data
         )
         print(response.json())
@@ -76,7 +68,7 @@ def main():
 
 while True:
     main()
-    time.sleep(0.5)
+    time.sleep(random.expovariate(2))   #promedio de 2 consultas/seg, pero tiempo random
 
     
     

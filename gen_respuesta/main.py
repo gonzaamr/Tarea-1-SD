@@ -1,7 +1,9 @@
 import os
 import pandas as pd
 import numpy as np
-from statistics import mean
+from fastapi import FastAPI
+
+app = FastAPI()
 
 ZONAS = {
     'Z1': {'lat_min': -33.445, 'lat_max': -33.420, 'lon_min': -70.640, 'lon_max': -70.600},
@@ -63,3 +65,22 @@ def q5_confidence_dist(zone_id, bins=5):
         {"bucket": i, "min": float(edges[i]), "max": float(edges[i+1]), "count": int(counts[i])}
         for i in range(bins)
     ]
+
+@app.post("/respuesta")
+def handle_query(data: dict):
+    query = data["query"]
+    zone_id = data["zone_id"]
+    params = data["params"]
+
+    confidence = params.get("confidence_min", 0.0)
+
+    if query == "Q1":
+        return q1_count(zone_id, confidence)
+    elif query == "Q2":
+        return q2_area(zone_id, confidence)
+    elif query == "Q3":
+        return q3_density(zone_id, confidence)
+    elif query == "Q4":
+        return q4_compare(zone_id, params["zone_b"], confidence)
+    elif query == "Q5":
+        return q5_confidence_dist(zone_id, params.get("bins", 5))

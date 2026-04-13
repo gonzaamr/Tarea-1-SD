@@ -4,6 +4,10 @@ services:
     container_name: redis1
     ports:
       - '6379:6379'
+    command: >
+      redis-server
+      --maxmemory 100mb 
+      --maxmemory-policy allkeys-lru
     volumes:
       - redis-data:/data
     networks:
@@ -29,6 +33,38 @@ services:
       - redis-network
     depends_on:
       - redis
+
+  api:
+    build: ./caché
+    container_name: fastapi-app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./caché:/app
+    networks:
+      - redis-network
+    restart: unless-stopped
+
+  gen_trafico:
+    build: ./gen_trafico
+    container_name: gen_trafico
+    volumes:
+      - ./gen_trafico:/app
+    networks:
+      - redis-network
+    environment:
+      - dist=1
+
+  gen_respuesta:
+    build: ./gen_respuesta
+    container_name: gen_respuesta
+    ports:
+      - "8001:8001"  
+    volumes:
+      - ./gen_respuesta:/app
+    networks:
+      - redis-network
+    restart: unless-stopped
 
 volumes:
   redis-data:
