@@ -1,5 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI #python -m uvicorn caché.app:app --reload
 import redis
+from gen_respuesta.main import calculo # mientras no hayan contenedores
 
 app = FastAPI()
 
@@ -14,6 +15,7 @@ def consulta(data:dict):
     if value:
         return value.decode() #HIT
     else:
-        result = "resultado_falso"
-        return result
+        if(calculo(data)):
+            print("calculo recibido")
+            return calculo(data)
   
