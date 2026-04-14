@@ -29,7 +29,7 @@ def consulta(datos: dict):
 
     value = r.get(key)
     if value:
-        return value.decode()  # HIT
+        return json.loads(value)  # HIT
     else:
         try:
             response = requests.post(
@@ -40,7 +40,7 @@ def consulta(datos: dict):
             result = response.json()
             
         except Exception as e:
-            print("Error:", e)
+            return {"error": str(e)}
 
-        r.set(key, json.dumps(result), ex=30)
+        r.set(key, json.dumps(result), ex=90)
         return result
