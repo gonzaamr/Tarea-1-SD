@@ -1,0 +1,107 @@
+services:
+  redis:
+    image: redis:alpine
+    container_name: redis1
+    ports:
+      - "6379:6379"
+    command: >
+      redis-server
+      --maxmemory ${CACHE_SIZE_MB}mb
+      --maxmemory-policy ${CACHE_POLICY}
+    volumes:
+      - redis-data:/data
+    networks:
+      - redis-network
+    restart: unless-stopped
+
+  cache:
+    build: ./cache
+    depends_on:
+      - redis
+      - respuesta
+      - metricas
+    networks:
+      - redis-network
+    restart: unless-stopped
+    expose:
+      - "8000"
+    deploy:
+      replicas: 5
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    env_file: .env
+
+  respuesta:
+    build: ./gen_respuesta
+    networks:
+      - redis-network
+    restart: unless-stopped
+    expose:
+      - "8080"
+    deploy:
+      replicas: 3
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    env_file: .env
+
+  metricas:
+    build: ./metricas
+    expose:
+      - "8002"
+    networks:
+      - redis-network
+    restart: unless-stopped
+    volumes:
+      - ./metricas/data:/app/metricas
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    env_file: .env
+
+  trafico:
+    build: ./gen_trafico
+    env_file: .env
+    depends_on:
+      - nginx
+    networks:
+      - redis-network
+    deploy:
+      replicas: 5
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8000:80"
+      - "8080:8080"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - cache
+    networks:
+      - redis-network
+    restart: unless-stopped
+
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: redis-insight
+    ports:
+      - "5540:5540"
+    depends_on:
+      - redis
+    volumes:
+      - redis-insight-data:/data
+    networks:
+      - redis-network
+
+volumes:
+  redis-data:
+  redis-insight-data:
+
+networks:
+  redis-network:
+    driver: bridge
